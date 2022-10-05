@@ -49,4 +49,12 @@ class CardService
         $nbLeftCards -= 1;
         return [$card, $deck, $nbLeftCards];
     }
+
+    public function ShowPlayerHand($hands){
+        return $hands[0];
+    }
+
+    public function ShowCroupierHand($hands){
+        return $hands[1];
+    }
 }
