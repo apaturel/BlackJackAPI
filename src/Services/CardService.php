@@ -9,29 +9,33 @@ class CardService
 {
     public function GenerateShoe()
     {
-        //$cardValues=$repo->findAll();
-        //dd($cardValues);
-        $cardValues = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
-        $cardColors = ["Heart", "Spades", "Diamond", "Club"];
-        $indexValue = 0;
-        $indexColor = 0;
+        $curlValues = curl_init();
+        curl_setopt($curlValues, CURLOPT_URL, "http://localhost:8000/api/card/value");
+        curl_setopt($curlValues, CURLOPT_RETURNTRANSFER, true);
+        $cardValues = curl_exec($curlValues);
+        curl_close($curlValues);
+        $cardValues = json_decode($cardValues, true);
+        
+        $curlColors = curl_init();
+        curl_setopt($curlColors, CURLOPT_URL, "http://localhost:8000/api/card/color");
+        curl_setopt($curlColors, CURLOPT_RETURNTRANSFER, true);
+        $cardColors = curl_exec($curlColors);
+        curl_close($curlColors);
+        $cardColors = json_decode($cardColors, true);
         $k = 0;
-        $nbCards = 52;
+
         for ($l = 1 ; $l <= 6; $l++) {
-            for ($k; $k <= $l*$nbCards-1 ; $k++ ){
-                $deck[$k] = [
-                    'value' => $cardValues[$indexValue],
-                    'color' => $cardColors[$indexColor],
-                ];
-                $indexColor++;
-                if (($k+1)%4 == 0 && $k!=0) {
-                    $indexValue++;
-                    $indexColor = 0;
+            foreach ($cardValues as $cardValue){
+                foreach ($cardColors as $cardColor){
+                    $deck[$k] = [
+                        'value' => $cardValue['value'],
+                        'color' => $cardColor['color'],
+                    ];
+                    $k++;
                 }
             }
-            $indexValue = 0;
-            $indexColor = 0;
         }
+        
         shuffle($deck);
         $nbLeftCards = 311;
         array_slice($deck, 5, $nbLeftCards);
