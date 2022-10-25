@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Services\CardService;
 use App\Services\GameService;
+use App\Services\ScoreService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -26,12 +27,17 @@ class GameController extends AbstractController
 
     #[Route('/test', name: 'test')]
     public function test(
+        GameService $gameService,
+        ScoreService $scoreService,
         CardService $cardService,
         SerializerInterface $serializer
         ): JsonResponse
     {
-        $init = $cardService->GenerateShoe();
-        $jsonInit = $serializer->serialize($init, 'json', []);
+        $score = 0;
+        $scoreBis = 0;
+        $start = $gameService->GenerateStartingHands($cardService);
+        $init = $scoreService->CalculateScore($score, $scoreBis, $start["playerCard"]);
+        $jsonInit = $serializer->serialize([$start, $init], 'json', []);
         return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
     }
 }

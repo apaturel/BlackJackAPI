@@ -1,10 +1,6 @@
 <?php
 namespace App\Services;
 
-use App\Repository\CardValueRepository;
-use App\Controller\CardValueController;
-use Symfony\Component\Serializer\SerializerInterface;
-
 class CardService
 {
     public function GenerateShoe()
