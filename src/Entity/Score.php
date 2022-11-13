@@ -16,8 +16,8 @@ class Score
     #[ORM\Column]
     private ?int $score = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $scoreAs = null;
+    #[ORM\Column]
+    private ?int $scoreBis = null;
 
     #[ORM\Column]
     private ?bool $busted = null;
@@ -39,14 +39,14 @@ class Score
         return $this;
     }
 
-    public function getScoreAs(): ?int
+    public function getScoreBis(): ?int
     {
-        return $this->scoreAs;
+        return $this->scoreBis;
     }
 
-    public function setScoreAs(?int $scoreAs): self
+    public function setScoreBis(?int $scoreBis): self
     {
-        $this->scoreAs = $scoreAs;
+        $this->scoreBis = $scoreBis;
 
         return $this;
     }

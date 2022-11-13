@@ -77,9 +77,9 @@ class AppFixtures extends Fixture
         $clubCard->setColor("Trèfle");
         $manager->persist($clubCard);
 
-        $croupierPlayer = new Player();
-        $croupierPlayer->setName("Croupier");
-        $manager->persist($croupierPlayer);
+        $dealerPlayer = new Player();
+        $dealerPlayer->setName("Croupier");
+        $manager->persist($dealerPlayer);
 
         $manager->flush();
     }

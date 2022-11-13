@@ -14,10 +14,16 @@ class Game
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?int $scorePlayerA = null;
+    private ?int $player = null;
 
     #[ORM\Column]
-    private ?int $scorePlayerB = null;
+    private ?int $dealer = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $scorePlayer = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $scoreDealer = null;
 
     #[ORM\Column]
     private ?int $bet = null;
@@ -31,34 +37,63 @@ class Game
     #[ORM\Column(nullable: true)]
     private ?int $result = null;
 
+    
+
     #[ORM\Column]
     private ?bool $status = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $deckId = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getScorePlayerA(): ?int
+    public function getPlayer(): ?int
     {
-        return $this->scorePlayerA;
+        return $this->player;
     }
 
-    public function setScorePlayerA(int $scorePlayerA): self
+    public function setPlayer(int $player): self
     {
-        $this->scorePlayerA = $scorePlayerA;
+        $this->player = $player;
 
         return $this;
     }
 
-    public function getScorePlayerB(): ?int
+    public function getDealer(): ?int
     {
-        return $this->scorePlayerB;
+        return $this->dealer;
     }
 
-    public function setScorePlayerB(int $scorePlayerB): self
+    public function setDealer(int $dealer): self
     {
-        $this->scorePlayerB = $scorePlayerB;
+        $this->dealer = $dealer;
+
+        return $this;
+    }
+
+    public function getScorePlayer(): ?int
+    {
+        return $this->scorePlayer;
+    }
+
+    public function setScorePlayer(int $scorePlayer): self
+    {
+        $this->scorePlayer = $scorePlayer;
+
+        return $this;
+    }
+
+    public function getscoreDealer(): ?int
+    {
+        return $this->scoreDealer;
+    }
+
+    public function setScoreDealer(int $scoreDealer): self
+    {
+        $this->scoreDealer = $scoreDealer;
 
         return $this;
     }
@@ -119,6 +154,18 @@ class Game
     public function setStatus(bool $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getDeckId(): ?int
+    {
+        return $this->deckId;
+    }
+
+    public function setDeckId(int $deckId): self
+    {
+        $this->deckId = $deckId;
 
         return $this;
     }
