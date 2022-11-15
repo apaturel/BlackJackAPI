@@ -8,6 +8,9 @@ use App\Services\ScoreService;
 use App\Entity\Game;
 use App\Entity\Player;
 use App\Entity\Score;
+
+use App\Entity\Deck;
+use App\Repository\DeckRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -71,71 +74,119 @@ class GameController extends AbstractController
     #[Route('/api/game/start/{gameId}', name: 'app_game_start')]
     public function startGame(
         ManagerRegistry $doctrine,
-        GameService $gameService,
         ScoreService $scoreService,
-        CardService $cardService,
         SerializerInterface $serializer,
         EntityManagerInterface $entityManager,
         int $gameId
         ): JsonResponse
     {
-        $scoreBase = 0;
-        $scoreBisBase = 0;
-
-        $deckId = 0;
-
+        $dealerId = 1;
 
         $gameRepository = $doctrine->getRepository(Game::class);
         $game = $gameRepository->find($gameId);
 
+        $cardRepository = $doctrine->getRepository(Card::class);
+        $cards = $cardRepository->findBy(array('gameId' => $gameId));
+
+        $i = 0;
+        $j = 0;
+        $playerCard = [];
+        $dealerCard = [];
+
+        foreach ($cards as $card){
+            if ($card->getPlayerId() !== 1){
+                $playerCard[$i] = $card;
+                $i++;
+            }else{
+                $dealerCard[$j] = $card;
+                $j++;
+            }
+        }
+
         $playerId = $game->getPlayer();
 
-        $start = $gameService->GenerateStartingHands($entityManager, $doctrine, $cardService, $deckId, $playerId);
+        $scoreService->CalculateScore($entityManager, $doctrine, $gameId, $playerId);
 
-        $playerCardsSum = $scoreService->CalculateScore($scoreBase, $scoreBisBase, $start["playerCard"]);
-        $playerScore = $playerCardsSum[0];
-        $playerScoreBis = $playerCardsSum[1];
+        $scoreService->CalculateScore($entityManager, $doctrine, $gameId, $dealerId);
 
-        $dealerCardsSum = $scoreService->CalculateScore($scoreBase, $scoreBisBase, $start["dealerCard"]);
-        $dealerScore = $dealerCardsSum[0];
-        $dealerScoreBis = $dealerCardsSum[1];
-
-        $playerScoreSave = new Score();
-        if ($playerScore <= 21) {
-            $playerScoreSave->setBusted(false);
-        } elseif ($playerScoreBis <= 21){
-            $playerScoreSave->setBusted(false);
-            $playerScore = $playerScoreBis;
-        } else {
-            $playerScoreSave->setBusted(true);
-        }
-        $playerScoreSave->setScore($playerScore);
-        $playerScoreSave->setScoreBis($playerScoreBis);
-        $entityManager->persist($playerScoreSave);
-
-        $dealerScoreSave = new Score();
-        if ($playerScore <= 21) {
-            $dealerScoreSave->setBusted(false);
-        } else if ($playerScoreBis <= 21){
-            $dealerScoreSave->setBusted(false);
-            $playerScore = $playerScoreBis;
-        } else {
-            $dealerScoreSave->setBusted(true);
-        }
-        $dealerScoreSave->setScore($dealerScore);
-        $dealerScoreSave->setScoreBis($dealerScoreBis);
-        $entityManager->persist($dealerScoreSave);
-
-        $entityManager->flush();
+        //TODO : Vérif des scores
+        // $game->setScorePlayer();
+        // $game->setScoreDealer();
 
         $game->setInProgress(true);
-        $game->setScorePlayer($playerScoreSave->getId());
-        $game->setScoreDealer($dealerScoreSave->getId());
+        
         $entityManager->persist($game);
 
         $entityManager->flush();
 
-        $jsonInit = $serializer->serialize([$start, [$playerCardsSum, $dealerCardsSum]], 'json', []);
+        $jsonInit = $serializer->serialize($game, 'json', []);
+        return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/game/{gameId}/hit', name: 'app_game_hit')]
+    public function hit(
+        ManagerRegistry $doctrine,
+        ScoreService $scoreService,
+        CardService $cardService,
+        GameService $gameService,
+        SerializerInterface $serializer,
+        EntityManagerInterface $entityManager,
+        int $gameId
+        ): JsonResponse
+    {
+        $gameRepository = $doctrine->getRepository(Game::class);
+        $game = $gameRepository->find($gameId);
+
+        $deckId = $game->getDeckId();
+        $playerId = $game->getPlayer();
+
+        $cardService->HitACard($entityManager, $doctrine, $deckId, $playerId);
+
+        $jsonInit = $serializer->serialize($gameId, 'json', []);
+        return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/game/{gameId}/hit', name: 'app_game_double')]
+    public function double(
+        ManagerRegistry $doctrine,
+        ScoreService $scoreService,
+        CardService $cardService,
+        GameService $gameService,
+        SerializerInterface $serializer,
+        EntityManagerInterface $entityManager,
+        int $gameId
+        ): JsonResponse
+    {
+        $gameRepository = $doctrine->getRepository(Game::class);
+        $game = $gameRepository->find($gameId);
+
+        $deckId = $game->getDeckId();
+        $playerId = $game->getPlayer();
+
+        $cardService->HitACard($entityManager, $doctrine, $deckId, $playerId);
+
+        //TODO : FIN DE GAME ( à faire après la gestion de partie)
+
+        $jsonInit = $serializer->serialize($gameId, 'json', []);
+        return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/game/{gameId}/splitter', name: 'app_game_splitter')]
+    public function splitter(
+        ManagerRegistry $doctrine,
+        ScoreService $scoreService,
+        CardService $cardService,
+        GameService $gameService,
+        SerializerInterface $serializer,
+        EntityManagerInterface $entityManager,
+        int $gameId
+        ): JsonResponse
+    {
+        
+
+        //TODO :
+
+        $jsonInit = $serializer->serialize($gameId, 'json', []);
         return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
     }
 
@@ -143,21 +194,18 @@ class GameController extends AbstractController
     public function test(
         ManagerRegistry $doctrine,
         GameService $gameService,
-        ScoreService $scoreService,
         CardService $cardService,
-        SerializerInterface $serializer,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        SerializerInterface $serializer
         ): JsonResponse
     {
-        
-        //$start = $gameService->GenerateStartingHands($entityManager, $doctrine, $cardService, 0, 19);
-
         $deckRepository = $doctrine->getRepository(Deck::class);
-        $deck = $deckRepository->find(0);
-
+        $deck = $deckRepository->findOneBy(array('isPlayable' => true));
         $shoe = $deck->getShoe();
+        $nbLeftCards = $deck->getLeftCards();
+        $newShoe = array_slice($shoe, 1, $nbLeftCards);
 
-        $jsonInit = $serializer->serialize($shoe, 'json', []);
+        $jsonInit = $serializer->serialize($newShoe, 'json', []);
         return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
     }
 } 

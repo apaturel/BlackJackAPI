@@ -20,6 +20,9 @@ class Deck
     #[ORM\Column]
     private ?int $leftCards = null;
 
+    #[ORM\Column]
+    private ?bool $isPlayable = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -45,6 +48,18 @@ class Deck
     public function setLeftCards(int $leftCards): self
     {
         $this->leftCards = $leftCards;
+
+        return $this;
+    }
+
+    public function isIsPlayable(): ?bool
+    {
+        return $this->isPlayable;
+    }
+
+    public function setIsPlayable(bool $isPlayable): self
+    {
+        $this->isPlayable = $isPlayable;
 
         return $this;
     }

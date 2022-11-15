@@ -1,66 +1,108 @@
 <?php
 namespace App\Services;
 
+use App\Entity\Score;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+
 class ScoreService
 {
-    public function CalculateScore($score, $scoreBis, $cards)
+    public function CalculateScore(EntityManagerInterface $entityManager, ManagerRegistry $doctrine, $gameId, $playerId)
     {
+        $scoreRepository = $doctrine->getRepository(Score::class);
+        $scores = $scoreRepository->findBy(array('gameId' => $gameId));
+        if ($scores !== null){
+            foreach ($scores as $score) {
+                if ($score->getPlayerId() === $playerId){
+                    $newScore = $score->getScore();
+                    $newScoreBis = $score->getScoreBis();
+                }
+            }
+        }else{
+            $score = new Score();
+            $newScore = 0;
+            $newScoreBis = 0;
+        }
+
+        $cardRepository = $doctrine->getRepository(Card::class);
+        $cards = $cardRepository->findBy(array('gameId' => $gameId));
+
+        $i = 0;
+        foreach ($cards as $card){
+            if ($card->getPlayerId() === $playerId){
+                $playerCard[$i] = $card;
+                $i++;
+            }
+        }
+
         foreach ($cards as $card) {
                 switch ($card["value"]) {
                     case "2":
-                        $score += 2;
-                        $scoreBis += 2;
+                        $newScore += 2;
+                        $newScoreBis += 2;
                         break;
                     case "3":
-                        $score += 3;
-                        $scoreBis += 3;
+                        $newScore += 3;
+                        $newScoreBis += 3;
                         break;
                     case "4":
-                        $score += 4;
-                        $scoreBis += 4;
+                        $newScore += 4;
+                        $newScoreBis += 4;
                         break;
                     case "5":
-                        $score += 5;
-                        $scoreBis += 5;
+                        $newScore += 5;
+                        $newScoreBis += 5;
                         break;
                     case "6":
-                        $score += 6;
-                        $scoreBis += 6;
+                        $newScore += 6;
+                        $newScoreBis += 6;
                         break;
                     case "7":
-                        $score += 7;
-                        $scoreBis += 7;
+                        $newScore += 7;
+                        $newScoreBis += 7;
                         break;
                     case "8":
-                        $score += 8;
-                        $scoreBis += 8;
+                        $newScore += 8;
+                        $newScoreBis += 8;
                         break;
                     case "9":
-                        $score += 9;
-                        $scoreBis += 9;
+                        $newScore += 9;
+                        $newScoreBis += 9;
                         break;
                     case "10":
-                        $score += 10;
-                        $scoreBis += 10;
+                        $newScore += 10;
+                        $newScoreBis += 10;
                         break;
                     case "J":
-                        $score += 10;
-                        $scoreBis += 10;
+                        $newScore += 10;
+                        $newScoreBis += 10;
                         break;
                     case "Q":
-                        $score += 10;
-                        $scoreBis += 10;
+                        $newScore += 10;
+                        $newScoreBis += 10;
                         break;
                     case "K":
-                        $score += 10;
-                        $scoreBis += 10;
+                        $newScore += 10;
+                        $newScoreBis += 10;
                         break;
                     case "A":
-                        $score += 11;
-                        $scoreBis += 1;
+                        $newScore += 11;
+                        $newScoreBis += 1;
                         break;
                 } 
         }
-        return [$score, $scoreBis];
+        if ($newScore <= 21) {
+            $score->setBusted(false);
+        } elseif ($newScore > 21 && $newScoreBis <= 21){
+            $score->setBusted(false);
+            $newScore = $newScoreBis;
+        } else {
+            $score->setBusted(true);
+        }
+        $score->setScore($newScore);
+        $score->setScoreBis($newScoreBis);
+        $entityManager->persist($score);
+
+        $entityManager->flush();
     }
 }

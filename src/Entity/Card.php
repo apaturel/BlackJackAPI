@@ -22,6 +22,9 @@ class Card
     #[ORM\Column]
     private ?int $playerId = null;
 
+    #[ORM\Column]
+    private ?int $gameId = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class Card
     public function setPlayerId(int $playerId): self
     {
         $this->playerId = $playerId;
+
+        return $this;
+    }
+
+    public function getGameId(): ?int
+    {
+        return $this->gameId;
+    }
+
+    public function setGameId(int $gameId): self
+    {
+        $this->gameId = $gameId;
 
         return $this;
     }
