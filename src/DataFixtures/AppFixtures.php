@@ -65,20 +65,20 @@ class AppFixtures extends Fixture
         $manager->persist($twoCard);
 
         $heartCard = new CardColor();
-        $heartCard->setColor("Coeur");
+        $heartCard->setColor("heart");
         $manager->persist($heartCard);
         $spadesCard = new CardColor();
-        $spadesCard->setColor("Pic");
+        $spadesCard->setColor("spade");
         $manager->persist($spadesCard);
         $diamondCard = new CardColor();
-        $diamondCard->setColor("Carreau");
+        $diamondCard->setColor("diamond");
         $manager->persist($diamondCard);
         $clubCard = new CardColor();
-        $clubCard->setColor("Trèfle");
+        $clubCard->setColor("club");
         $manager->persist($clubCard);
 
         $dealerPlayer = new Player();
-        $dealerPlayer->setName("Croupier");
+        $dealerPlayer->setName("dealer");
         $manager->persist($dealerPlayer);
 
         $manager->flush();

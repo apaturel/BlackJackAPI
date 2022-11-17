@@ -11,6 +11,7 @@ use App\Entity\Score;
 
 use App\Entity\Deck;
 use App\Repository\DeckRepository;
+use App\Services\DeckService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -28,7 +29,9 @@ class GameController extends AbstractController
         int $bet,
         ManagerRegistry $doctrine,
         SerializerInterface $serializer,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        DeckService $deckService,
+        CardService $cardService
         ): JsonResponse
     {
         $newGame = new Game();
@@ -37,6 +40,7 @@ class GameController extends AbstractController
 
         $playerExist = $playerRepository->findOneBy(['name' => $playerName]);
         $gamesInProgress = $gameRepository->findBy(array('inProgress' => 1));
+        $gameExist = null;
 
         if ($playerExist != null) {
             $player = $playerExist;
@@ -58,12 +62,12 @@ class GameController extends AbstractController
             $game = $gameExist;
         } else {
             $game = $newGame;
-            $newGame->setPlayer($player->getId());
-            $newGame->setDealer(1);
-            $newGame->setBet((int)$bet);
-            $newGame->setInProgress(true);
-            $newGame->setStatus(true);
-            $entityManager->persist($newGame);
+            $game->setPlayer($player->getId());
+            $game->setDealer(1);
+            $game->setBet((int)$bet);
+            $game->setInProgress(true);
+            $game->setStatus(true);
+            $entityManager->persist($game);
             $entityManager->flush();
         }
 
@@ -77,10 +81,14 @@ class GameController extends AbstractController
         ScoreService $scoreService,
         SerializerInterface $serializer,
         EntityManagerInterface $entityManager,
+        DeckService $deckService,
+        CardService $cardService,
         int $gameId
         ): JsonResponse
     {
         $dealerId = 1;
+
+        $deckService->LinkDeckToGame($entityManager, $doctrine, $deckService, $gameId);
 
         $gameRepository = $doctrine->getRepository(Game::class);
         $game = $gameRepository->find($gameId);
@@ -201,11 +209,8 @@ class GameController extends AbstractController
     {
         $deckRepository = $doctrine->getRepository(Deck::class);
         $deck = $deckRepository->findOneBy(array('isPlayable' => true));
-        $shoe = $deck->getShoe();
-        $nbLeftCards = $deck->getLeftCards();
-        $newShoe = array_slice($shoe, 1, $nbLeftCards);
 
-        $jsonInit = $serializer->serialize($newShoe, 'json', []);
+        $jsonInit = $serializer->serialize($deck->getLeftCards(), 'json', []);
         return new JsonResponse($jsonInit, Response::HTTP_OK, [], true);
     }
 } 
